@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \\\"Error: no test specified\\\" && exit 1"
+    "test": "echo \\\"Error: no test specified\\\" && exit 1",
+    "mocha-test-puppeteer": "node_modules/mocha/bin/mocha test/mocha/campaigns/test_open_browser.js"
   },
   "repository": {
     "type": "git",
