@@ -28,7 +28,7 @@ module.exports = {
       test('should click on "Reset" button', () => client.waitForAndClick(SqlManagerPage.filter_reset_button));
     }, 'common_client');
   },
-  async deleteSqlQueryWithBulkAction() {
+  async deleteSqlQueryWithBulkAction(alert = false) {
     scenario('Delete the created SQL query with bulk action', client => {
       test('should click on "Bulk action" button then click on "Select all" action', async () => {
         await client.waitForAndClick(SqlManagerPage.bulk_action_button);
@@ -36,9 +36,36 @@ module.exports = {
       });
       test('should click on "Bulk action" button then click on "Delete selected" action', async () => {
         await client.waitForAndClick(SqlManagerPage.bulk_action_button);
+        if (alert) {
+          await client.confirmationDialog();
+        }
         await client.waitForAndClick(SqlManagerPage.bulk_action_option_button.replace('%S', 4), 2000);
       });
       test('should check that the created "SQL query" does not exist in the table', () => client.isExisting(SqlManagerPage.no_records_found, 4000));
     }, 'common_client');
+  },
+  async sortSqlQuery(selector, sortBy) {
+    scenario('Check the sort of sql query by "' + sortBy.toUpperCase() + '"', client => {
+      test('should get the number of sql query', () => client.getTextInVar(SqlManagerPage.sql_query_number_span, 'number_sql_query'));
+      test('should click on "Sort by ASC" icon', async () => {
+        for (let j = 0; j < (parseInt(tab['number_sql_query'])); j++) {
+          await client.getTableField(selector, j);
+        }
+        await client.waitForAndClick(SqlManagerPage.sort_icon.replace('%SORTBY', sortBy).replace('%SORTWAY', 'asc'));
+      });
+      test('should check that the sql query are well sorted by ASC', async () => {
+        for (let j = 0; j < (parseInt(tab['number_sql_query'])); j++) {
+          await client.getTableField(selector, j, true);
+        }
+        await client.checkSortTable('ASC');
+      });
+      test('should click on "Sort by DESC" icon', () => client.waitForAndClick(SqlManagerPage.sort_icon.replace('%SORTBY', sortBy).replace('%SORTWAY', 'desc')));
+      test('should check that the sql query are well sorted by DESC', async () => {
+        for (let j = 0; j < (parseInt(tab['number_sql_query'])); j++) {
+          await client.getTableField(selector, j, true);
+        }
+        await client.checkSortTable('DESC');
+      });
+    }, 'advancedParameters/databaseClient');
   }
 };

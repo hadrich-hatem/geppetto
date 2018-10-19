@@ -7,11 +7,19 @@ module.exports = {
     bulk_action_button: '#bulk_action_menu_request_sql',
     bulk_action_option_button: '#form-request_sql div.bulk-actions li:nth-child(%S) a',
     sql_manager_table: '#table-request_sql',
+    sort_icon: '#table-request_sql a[href *= "request_sqlOrderby=%SORTBY"][href *= "request_sqlOrderway=%SORTWAY"]',
+    sql_query_number_span: '#form-request_sql span[class="badge"]',
     get no_records_found() {
       return this.sql_manager_table + ' tbody div.list-empty-msg';
     },
+    get sql_query_id() {
+      return this.sql_manager_table + ' tr:nth-child(%S) > td:nth-child(2)';
+    },
     get sql_query_name() {
       return this.sql_manager_table + ' tr:nth-child(%S) > td:nth-child(3)';
+    },
+    get sql_query() {
+      return this.sql_manager_table + ' tr:nth-child(%S) > td:nth-child(4)';
     },
     get filter_sql_query_name_input() {
       return this.sql_manager_table + ' > thead input[name="request_sqlFilter_name"]';
