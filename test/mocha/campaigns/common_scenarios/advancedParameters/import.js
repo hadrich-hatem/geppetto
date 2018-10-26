@@ -31,5 +31,25 @@ module.exports = {
       test('should click on "Yes" to delete all categories before import', () => client.waitForAndClick(ImportPage.delete_all_categories_before_import_button, 2000));
       test('should check the appearance of confirmation dialog when we click on "Next step" button', () => client.checkDialog(ImportPage.next_step_button, 2000));
     }, 'advancedParameters/importClient');
+  },
+  async importCSVProductFile(fileName) {
+    scenario('Import csv product file', async client => {
+      test('should close the symfony toolbar', async () => {
+        await client.waitFor(CommonBO.symfony_toolbar_close_button, {visible: true});
+        const exist = await page.$(CommonBO.symfony_toolbar_close_button, {visible: true});
+        if (exist !== null) {
+          await page.click(CommonBO.symfony_toolbar_close_button);
+        }
+      });
+      test('should go to "Import" page', async () => {
+        await client.scrollIntoView(Menu.Configure.AdvancedParameters.advanced_parameters_menu);
+        await client.waitForAndClick(Menu.Configure.AdvancedParameters.advanced_parameters_menu, 5000);
+        await client.waitForAndClick(Menu.Configure.AdvancedParameters.import_submenu, 2000);
+      });
+      test('should choose the "Products" entity from the select list', () => client.waitForAndSelect(ImportPage.entity_select, 1));
+      test('should upload the downloaded file "' + fileName + '"', () => client.uploadFile(ImportPage.import_file_input, dataFileFolder, fileName));
+      test('should click on "Yes" to delete all categories before import', () => client.waitForAndClick(ImportPage.delete_all_categories_before_import_button, 2000));
+      test('should check the appearance of confirmation dialog when we click on "Next step" button', () => client.checkDialog(ImportPage.next_step_button, 2000));
+    }, 'advancedParameters/importClient');
   }
 };
