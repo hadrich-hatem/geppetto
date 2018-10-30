@@ -141,5 +141,26 @@ module.exports = {
         await client.switchWindow(0);
       });
     }, 'common_client');
+  },
+  async deleteProductInBO(productData) {
+    scenario('Delete the created product in the Back Office', client => {
+      test('should go to "Catalog" page', async () => {
+        await client.waitForAndClick(Menu.Sell.Catalog.catalog_menu);
+        await client.waitForAndClick(Menu.Sell.Catalog.products_submenu, 1000);
+      });
+      scenario('Delete the created product', client => {
+        test('should search for the created product', async () => {
+          await client.waitFor(Catalog.filter_input.replace('%NAME', 'name'));
+          await client.clearInputAndSetValue(Catalog.filter_input.replace('%NAME', 'name'), productData.name + dateTime);
+          await client.waitForAndClick(Catalog.submit_filter_button, 2000);
+        });
+        test('should click on "Dropdown" button then click on "Delete" action', async () => {
+          await client.waitForAndClick(Catalog.dropdown_button, 2000);
+          await client.waitForAndClick(Catalog.delete_button, 2000);
+          await client.waitForAndClick(Catalog.delete_now_modal_button, 2000, {visible: true});
+        });
+        test('should click on "Reset" button', () => client.waitForAndClick(Catalog.reset_filter_button, 2000));
+      }, 'common_client');
+    }, 'common_client');
   }
 };
