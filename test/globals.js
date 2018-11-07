@@ -7,10 +7,10 @@ global.lastName = 'Prestashop';
 global.email = argv.LOGIN || 'demo@prestashop.com';
 global.password = argv.PASSWD || 'prestashop_demo';
 
-global.rcTarget = argv.RC_TARGET || '';
-global.rcLink = argv.UrlStableVersion || 'https://download.prestashop.com/download/releases/prestashop_1.7.4.2.zip';
+global.releaseTarget = argv.RELEASE_TARGET || '';
+global.releaseLink = argv.RELEASE_LINK || 'https://download.prestashop.com/download/releases/prestashop_1.7.4.2.zip';
 global.prestashopFolderName = 'prestashop';
-global.URL = argv.URL || 'http://127.0.0.1:8081/prestashop';
+global.URL = argv.URL || 'http://localhost/prestashop';
 global.language = argv.LANG || 'en';
 global.country = argv.COUNTRY || 'france';
 global.dbServer = argv.DB_SERVER || '127.0.0.1';

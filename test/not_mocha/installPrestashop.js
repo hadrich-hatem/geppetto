@@ -5,7 +5,7 @@ chai.use(require('chai-string'));
 const expect = chai.expect;
 let fs = require('fs');
 const exec = require('child_process').exec;
-global.prestashopFile = '';
+global.prestashopFile = releaseLink.split('/')[releaseLink.split('/').length - 1];
 global.folderExist;
 
 const installShop = async (debugMode = false) => {
@@ -18,37 +18,44 @@ const installShop = async (debugMode = false) => {
   });
 
   await page._client.send('Emulation.clearDeviceMetricsOverride');
-  fs.existsSync(rcTarget + prestashopFolderName) ? global.folderExist = true : global.folderExist = false;
+  fs.existsSync(releaseTarget + prestashopFolderName) ? global.folderExist = true : global.folderExist = false;
   if (global.folderExist) {
-    console.error('The prestashop folder exist in your path: "' + rcTarget + '"')
+    console.error('The prestashop folder exist in your path: "' + releaseTarget + '"')
   } else {
-    if (global.rcTarget !== '' && global.rcLink !== '') {
+    if (global.releaseTarget !== '' && global.releaseLink !== '') {
       await page._client.send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: global.downloadFileFolder});
-      await page.evaluate(async rcLink => {
-        return document.location.href = rcLink;
-      }, rcLink);
-      await page.waitFor(160000);
+      await page.evaluate(async releaseLink => {
+        return document.location.href = releaseLink;
+      }, releaseLink);
+
+      await new Promise(function (resolve, reject) {
+        let watcher = fs.watch(global.downloadFileFolder, function (eventType, filename) {
+          if (eventType === 'rename' && filename === prestashopFile) {
+            watcher.close();
+            resolve();
+          }
+        });
+      });
 
       await exec('grep -l "prestashop*.zip" ' + global.downloadFileFolder + '* | sed -r "s/.+\\/(.+)\\..+/\\1/"',
         (error, stdout, stderr) => {
           if (error !== null) {
-            console.log(`[exec] Error while getting the ZIP file name: ${error}`);
+            console.log(`[exec] Error while downloading the ZIP file name: ${error}`);
           } else {
             console.log('should successfully download the ZIP file');
-            prestashopFile = stdout.replace('\n', "");
           }
         });
       await page.waitFor(2000);
-      await exec('cp ' + global.downloadFileFolder + prestashopFile + '.zip ' + rcTarget,
+      await exec('cp ' + global.downloadFileFolder + prestashopFile + ' ' + releaseTarget,
         (error, stdout, stderr) => {
           if (error !== null) {
             console.log(`[exec] Error while copying the ZIP file: ${error}`);
           } else {
-            console.log('should successfully copy the ZIP file in the RC_TARGET');
+            console.log('should successfully copy the ZIP file in the RELEASE_TARGET');
           }
         });
       await page.waitFor(5000);
-      await exec('rm -f ' + global.downloadFileFolder + prestashopFile + '.zip ',
+      await exec('rm -f ' + global.downloadFileFolder + prestashopFile + ' ',
         (error, stdout, stderr) => {
           if (error !== null) {
             console.log(`[exec] Error while removing the downloaded ZIP file: ${error}`);
@@ -57,7 +64,7 @@ const installShop = async (debugMode = false) => {
           }
         });
       await page.waitFor(5000);
-      await exec('unzip ' + rcTarget + prestashopFile + '.zip -d ' + rcTarget + prestashopFolderName,
+      await exec('unzip ' + releaseTarget + prestashopFile + ' -d ' + releaseTarget + prestashopFolderName,
         (error, stdout, stderr) => {
           if (error !== null) {
             console.log(`[exec] Error while extracting the ZIP file: ${error}`);
@@ -66,7 +73,7 @@ const installShop = async (debugMode = false) => {
           }
         });
       await page.waitFor(10000);
-      await exec('chmod 777 -R ' + rcTarget + prestashopFolderName,
+      await exec('chmod 777 -R ' + releaseTarget + prestashopFolderName,
         (error, stdout, stderr) => {
           if (error !== null) {
             console.log(`[exec] Error while applying the CHMOD: ${error}`);
@@ -78,8 +85,8 @@ const installShop = async (debugMode = false) => {
 
       await page._client.send('Emulation.clearDeviceMetricsOverride');
       await page.goto(global.URL);
-      await page.waitFor(12000);
-      await exec('mv ' + rcTarget + prestashopFolderName + '/admin' + ' ' + rcTarget + prestashopFolderName + '/admin-dev',
+      await page.waitFor(12000, {waituntil: 'domcontentloaded'});
+      await exec('mv ' + releaseTarget + prestashopFolderName + '/admin' + ' ' + releaseTarget + prestashopFolderName + '/admin-dev',
         (error, stdout, stderr) => {
           if (error !== null) {
             console.log(`[exec] Error while renaming the admin folder: ${error}`);
@@ -88,7 +95,7 @@ const installShop = async (debugMode = false) => {
           }
         });
       await page.waitFor(10000);
-      await exec('mv ' + rcTarget + prestashopFolderName + '/install' + ' ' + rcTarget + prestashopFolderName + '/install-dev',
+      await exec('mv ' + releaseTarget + prestashopFolderName + '/install' + ' ' + releaseTarget + prestashopFolderName + '/install-dev',
         (error, stdout, stderr) => {
           if (error !== null) {
             console.log(`[exec] Error while renaming the install folder: ${error}`);
@@ -98,7 +105,7 @@ const installShop = async (debugMode = false) => {
         });
     }
     if (debugMode) {
-      const definesFile = rcTarget + global.prestashopFolderName + '/config/defines.inc.php';
+      const definesFile = releaseTarget + global.prestashopFolderName + '/config/defines.inc.php';
       await fs.readFile(definesFile, 'utf8', (err, content) => {
         global.ps_mode_dev = (content.substring(content.indexOf("define('_PS_MODE_DEV_', "), content.indexOf(");")).split(', ')[1]) === 'true' ? true : false;
         if (!global.ps_mode_dev) {
